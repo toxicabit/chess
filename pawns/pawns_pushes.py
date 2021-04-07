@@ -109,6 +109,7 @@ def pawn_single_push(pawns, sector, empty, color):
     """
     Count possible single push forward for
     pawn specified by sector
+    //------------------------------------//
     :param pawns: bitarray of pawns
     :param sector: bitarray for board column
     :param empty: bitarray of empty squares
@@ -123,6 +124,7 @@ def pawn_double_push(pawns, sector, empty, color):
     """
     Count possible double push forward for
     pawn specified by sector
+    //------------------------------------//
     :param pawns: bitarray of pawns
     :param sector: bitarray for board column
     :param empty: bitarray of empty squares
