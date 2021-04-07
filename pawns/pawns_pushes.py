@@ -103,3 +103,31 @@ def pawns_push(pawns, empty, color):
 
     single = pawns_single_push(pawns, empty, color)
     return single | pawns_double_push(pawns, empty, color)
+
+
+def pawn_single_push(pawns, sector, empty, color):
+    """
+    Count possible single push forward for
+    pawn specified by sector
+    :param pawns: bitarray of pawns
+    :param sector: bitarray for board column
+    :param empty: bitarray of empty squares
+    :param color: color of pawns
+    :return: bitarray with possible push
+    """
+
+    return pawns_single_push(pawns & sector, empty, color)
+
+
+def pawn_double_push(pawns, sector, empty, color):
+    """
+    Count possible double push forward for
+    pawn specified by sector
+    :param pawns: bitarray of pawns
+    :param sector: bitarray for board column
+    :param empty: bitarray of empty squares
+    :param color: color of pawns
+    :return: bitarray with possible push
+    """
+
+    return pawns_double_push(pawns & sector, empty, color)
