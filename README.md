@@ -63,10 +63,9 @@
 
 Используемые средства:
 
->1. Операционная система Windows 10.
->2. Jupyter notebook(Anaconda 8.3.4).
->3. Spider(Anaconda 8.3.4)
->4. Python 3.8.3.
->5. Библиотека numpy.
->6. Библиотека PyGame.
->7. Библиотека bitarray
+>1. Операционная система Windows 10
+>2. Google Colaboratory
+>3. PyCharm 2020.2.3 x64
+>4. Python 3.9
+>5. Библиотека bitarray
+>6. Библиотека PyGame
