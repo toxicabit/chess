@@ -124,7 +124,7 @@ def south_south_west_attack(knights, enemy):
     return ssw & enemy
 
 
-def knights_attack_attack(knights, enemy):
+def knights_attack(knights, enemy):
     """
     Count possible squares for push
     //-----------------------------//
