@@ -1,7 +1,7 @@
 from constants import SECTORS
 
 
-def north_north_east(knights, enemy):
+def north_north_east_attack(knights, enemy):
     """
     Count possible squares for push
     to north north east direction
@@ -15,7 +15,7 @@ def north_north_east(knights, enemy):
     return nne & enemy
 
 
-def north_east_east(knights, enemy):
+def north_east_east_attack(knights, enemy):
     """
     Count possible squares for push
     to north east east direction
@@ -31,7 +31,7 @@ def north_east_east(knights, enemy):
     return nee & enemy
 
 
-def south_east_east(knights, enemy):
+def south_east_east_attack(knights, enemy):
     """
     Count possible squares for push
     to south east east direction
@@ -47,7 +47,7 @@ def south_east_east(knights, enemy):
     return see & enemy
 
 
-def south_south_east(knights, enemy):
+def south_south_east_attack(knights, enemy):
     """
     Count possible squares for push
     to south south east direction
@@ -62,7 +62,7 @@ def south_south_east(knights, enemy):
     return sse & enemy
 
 
-def north_north_west(knights, enemy):
+def north_north_west_attack(knights, enemy):
     """
     Count possible squares for push
     to north north west direction
@@ -77,7 +77,7 @@ def north_north_west(knights, enemy):
     return nnw & enemy
 
 
-def north_west_west(knights, enemy):
+def north_west_west_attack(knights, enemy):
     """
     Count possible squares for push
     to north west west direction
@@ -93,7 +93,7 @@ def north_west_west(knights, enemy):
     return nww & enemy
 
 
-def south_west_west(knights, enemy):
+def south_west_west_attack(knights, enemy):
     """
     Count possible squares for push
     to south west west direction
@@ -109,7 +109,7 @@ def south_west_west(knights, enemy):
     return sww & enemy
 
 
-def south_south_west(knights, enemy):
+def south_south_west_attack(knights, enemy):
     """
     Count possible squares for push
     to south south west direction
@@ -124,7 +124,7 @@ def south_south_west(knights, enemy):
     return ssw & enemy
 
 
-def knights_attacks(knights, enemy):
+def knights_attack_attack(knights, enemy):
     """
     Count possible squares for push
     //-----------------------------//
@@ -133,14 +133,14 @@ def knights_attacks(knights, enemy):
     :return: bitarray of possible pushes
     """
 
-    nnw = north_north_west(knights, enemy)
-    nww = north_west_west(knights, enemy)
-    sww = south_west_west(knights, enemy)
-    ssw = south_south_west(knights, enemy)
-    sse = south_south_east(knights, enemy)
-    see = south_east_east(knights, enemy)
-    nee = north_east_east(knights, enemy)
-    nne = north_north_east(knights, enemy)
+    nnw = north_north_west_attack(knights, enemy)
+    nww = north_west_west_attack(knights, enemy)
+    sww = south_west_west_attack(knights, enemy)
+    ssw = south_south_west_attack(knights, enemy)
+    sse = south_south_east_attack(knights, enemy)
+    see = south_east_east_attack(knights, enemy)
+    nee = north_east_east_attack(knights, enemy)
+    nne = north_north_east_attack(knights, enemy)
 
     pushes = nnw | nww | sww | ssw
     pushes |= sse | see | nee | nne
