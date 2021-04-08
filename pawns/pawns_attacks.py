@@ -1,4 +1,4 @@
-from constants import RANKS
+from constants import SECTORS
 from constants import WHITE
 
 
@@ -11,7 +11,7 @@ def north_west_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns << 9) & ~RANKS[0]
+    return (pawns << 7) & ~SECTORS[0]
 
 
 def north_east_one(pawns):
@@ -23,7 +23,7 @@ def north_east_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns << 7) & ~RANKS[7]
+    return (pawns << 9) & ~SECTORS[7]
 
 
 def south_west_one(pawns):
@@ -35,7 +35,7 @@ def south_west_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns >> 9) & ~RANKS[0]
+    return (pawns >> 9) & ~SECTORS[0]
 
 
 def south_east_one(pawns):
@@ -47,7 +47,7 @@ def south_east_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns >> 7) & ~RANKS[7]
+    return (pawns >> 7) & ~SECTORS[7]
 
 
 def pawns_nwest_attacks(pawns, enemy):
