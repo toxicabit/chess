@@ -82,11 +82,11 @@ def pawns_double_push(pawns, empty, color):
     """
 
     if color == WHITE:
-        rank = RANKS[1]
+        rank = RANKS[2]
         return north_two(pawns, rank) & empty
 
     else:
-        rank = RANKS[6]
+        rank = RANKS[7]
         return south_two(pawns, rank) & empty
 
 

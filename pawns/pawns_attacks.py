@@ -11,7 +11,7 @@ def north_west_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns << 7) & ~SECTORS[0]
+    return (pawns << 7) & ~SECTORS['H']
 
 
 def north_east_one(pawns):
@@ -23,7 +23,7 @@ def north_east_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns << 9) & ~SECTORS[7]
+    return (pawns << 9) & ~SECTORS['A']
 
 
 def south_west_one(pawns):
@@ -35,7 +35,7 @@ def south_west_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns >> 9) & ~SECTORS[0]
+    return (pawns >> 9) & ~SECTORS['H']
 
 
 def south_east_one(pawns):
@@ -47,7 +47,7 @@ def south_east_one(pawns):
     :return: bitarray of possible attacks
     """
 
-    return (pawns >> 7) & ~SECTORS[7]
+    return (pawns >> 7) & ~SECTORS['A']
 
 
 def pawns_nwest_attacks(pawns, enemy):
