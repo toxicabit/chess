@@ -1,16 +1,17 @@
+from test_figure_property import TestFigureProperty
 from pawns_pushes import *
 from constants import *
 
 
-class TestPawnsPush:
+class TestPawnsPush(TestFigureProperty):
     """
     Special class to test pawns pushes functions
     """
 
     def __init__(self):
-        pass
+        super().__init__()
 
-    def __test_pawns_push(self, pawns, empty, color, expect):
+    def test_figure_property(self, pawns, empty, color, expect):
         """
         Test pawns_push() function
         //------------------------------------//
@@ -25,7 +26,7 @@ class TestPawnsPush:
 
         assert result == expect, f'{result} != {expect}'
 
-    def test_black_push(self):
+    def test_black(self):
         """
         Test black pushes
         :return: None
@@ -33,19 +34,19 @@ class TestPawnsPush:
 
         expect = (bpawns >> 8) | (bpawns >> 16)
         expect &= ~occupied
-        self.__test_pawns_push(bpawns, ~occupied, BLACK, expect)
+        self.test_figure_property(bpawns, ~occupied, BLACK, expect)
 
         expect = (bknight >> 24) & ~occupied
-        self.__test_pawns_push(bknight >> 16, ~occupied, BLACK, expect)
+        self.test_figure_property(bknight >> 16, ~occupied, BLACK, expect)
 
         expect = (bking >> 16) | (bking >> 24)
         expect &= ~occupied
-        self.__test_pawns_push(bking >> 8, ~occupied, BLACK, expect)
+        self.test_figure_property(bking >> 8, ~occupied, BLACK, expect)
 
         expect = (bbishop >> 48) & ~occupied
-        self.__test_pawns_push(bbishop >> 40, ~occupied, BLACK, expect)
+        self.test_figure_property(bbishop >> 40, ~occupied, BLACK, expect)
 
-    def test_white_push(self):
+    def test_white(self):
         """
         Test white pushes
         :return: None
@@ -53,14 +54,14 @@ class TestPawnsPush:
 
         expect = (wpawns << 8) | (wpawns << 16)
         expect &= ~occupied
-        self.__test_pawns_push(wpawns, ~occupied, WHITE, expect)
+        self.test_figure_property(wpawns, ~occupied, WHITE, expect)
 
         expect = (wknight << 24) & ~occupied
-        self.__test_pawns_push(wknight << 16, ~occupied, WHITE, expect)
+        self.test_figure_property(wknight << 16, ~occupied, WHITE, expect)
 
         expect = (wking << 16) | (wking << 24)
         expect &= ~occupied
-        self.__test_pawns_push(wking << 8, ~occupied, WHITE, expect)
+        self.test_figure_property(wking << 8, ~occupied, WHITE, expect)
 
         expect = (wbishop << 48) & ~occupied
-        self.__test_pawns_push(wbishop << 40, ~occupied, WHITE, expect)
+        self.test_figure_property(wbishop << 40, ~occupied, WHITE, expect)
