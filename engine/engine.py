@@ -34,7 +34,7 @@ RAY - direction which sliding figure can attack
 
 class Grandmaster:
 
-    def count_north_rays(self):
+    def __count_north_rays(self):
         """
         Count rays in north direction
         for all square on the board
@@ -53,7 +53,7 @@ class Grandmaster:
 
         return north_rays
 
-    def count_south_rays(self):
+    def __count_south_rays(self):
         """
         Count rays in north direction
         for all square on the board
@@ -74,7 +74,7 @@ class Grandmaster:
 
         return south_rays
 
-    def count_east_rays(self, sectors, null):  # #reverse SECTORS from GitHub
+    def __count_east_rays(self, sectors, null):  # #reverse SECTORS from GitHub
         """
         Count rays in east direction
         for all square on the board
@@ -97,7 +97,7 @@ class Grandmaster:
 
         return east_rays
 
-    def count_west_rays(self, sectors, null): # #reverse SECTORS from GitHub
+    def __count_west_rays(self, sectors, null):  # #reverse SECTORS from GitHub
         """
         Count rays in west direction
         for all square on the board
@@ -121,6 +121,117 @@ class Grandmaster:
         west_rays.reverse()
 
         return west_rays
+
+    def __count_north_east_rays(self, sectors, null):
+        """
+        Count rays in north east direction
+        for all square on the board
+
+        :return: array of north east rays
+        """
+
+        north_east_rays = []
+        north_east_ray = bt.bitarray('100000000' * 8)
+
+        for i in range(8):
+            north_east_ray.pop(-1)
+
+        north_east_ray[-1] = False
+
+        for i in range(8):
+            current_ray = north_east_ray << i * 8
+            mask = ~null
+            sector = 0
+
+            for j in range(8):
+                mask &= ~sectors[sector]
+                north_east_rays.append((current_ray << j) & mask)
+                sector += 1
+
+        return north_east_rays
+
+    def __count_south_east_rays(self, sectors, null):
+        """
+        Count rays in south east direction
+        for all square on the board
+
+        :return: array of south east rays
+        """
+
+        south_east_rays = []
+        south_east_ray = bt.bitarray('0' * 14 + '1000000' * 7 + '0')
+
+        for i in range(8):
+            current_ray = south_east_ray >> i * 8
+            mask = ~null
+            sector, rank = 0, []
+
+            for j in range(8):
+                mask &= ~sectors[sector]
+                rank.append((current_ray << j) & mask)
+                sector += 1
+
+            rank.reverse()
+            south_east_rays = south_east_rays + rank
+
+        south_east_rays.reverse()
+
+        return south_east_rays
+
+    def __count_north_west_rays(self, sectors, null):
+        """
+        Count rays in north west direction
+        for all square on the board
+
+        :return: array of north west rays
+        """
+
+        north_west_rays = []
+        north_west_ray = bt.bitarray('0' * 7 + '1000000' * 7 + '0' * 8)
+
+        for i in range(8):
+            current_ray = north_west_ray << i * 8
+            mask = ~null
+            sector, rank = 7, []
+
+            for j in range(8):
+                mask &= ~sectors[sector]
+                rank.append((current_ray >> j) & mask)
+                sector -= 1
+
+            rank.reverse()
+
+            north_west_rays = north_west_rays + rank
+
+        return north_west_rays
+
+    def __count_south_west_rays(self, sectors, null):
+        """
+        Count rays in south west direction
+        for all square on the board
+
+        :return: array of south west rays
+        """
+
+        south_west_rays = []
+        south_west_ray = bt.bitarray('0' * 9 + '100000000' * 7)
+
+        for i in range(8):
+            south_west_ray.pop(-1)
+
+        for i in range(8):
+            current_ray = south_west_ray >> i * 8
+            mask = ~null
+            sector = 7
+
+            for j in range(8):
+                mask &= ~sectors[sector]
+                south_west_rays.append((current_ray >> j) & mask)
+                sector -= 1
+
+        south_west_rays.reverse()
+
+        return south_west_rays
 
     def __init__(self):
         pass
