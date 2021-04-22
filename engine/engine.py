@@ -1,3 +1,4 @@
+from constants import *
 import bitarray as bt
 
 
@@ -233,5 +234,65 @@ class Grandmaster:
 
         return south_west_rays
 
-    def __init__(self):
-        pass
+    def __init__(self, player_color):
+
+        self.__player_color = player_color
+        self.__white = {'pawns': bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
+                        'rook': bt.bitarray('0' * 56 + '1' + '0' * 6 + '1'),
+                        'knight': bt.bitarray('0' * 57 + '1' + '0' * 4 + '1' + '0'),
+                        'bishop': bt.bitarray('0' * 58 + '1' + '0' * 2 + '1' + '0' * 2),
+                        'queen': bt.bitarray('0' * 59 + '1' + '0' * 4),
+                        'king': bt.bitarray('0' * 60 + '1' + '0' * 3)}
+        self.__black = {'pawns': bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
+                        'rook': bt.bitarray('1' + '0' * 6 + '1' + '0' * 56),
+                        'knight': bt.bitarray('0' + '1' + '0' * 4 + '1' + '0' * 57),
+                        'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
+                        'queen': bt.bitarray('0' * 3 + '1' + '0' * 60),
+                        'king': bt.bitarray('0' * 4 + '1' + '0' * 59)}
+        self.__RANKS = [bt.bitarray('0' * 56 + '1' * 8),
+                        bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
+                        bt.bitarray('0' * 40 + '1' * 8 + '0' * 16),
+                        bt.bitarray('0' * 32 + '1' * 8 + '0' * 24),
+                        bt.bitarray('0' * 24 + '1' * 8 + '0' * 32),
+                        bt.bitarray('0' * 16 + '1' * 8 + '0' * 40),
+                        bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
+                        bt.bitarray('1' * 8 + '0' * 56)]
+        self.__SECTORS = [bt.bitarray('00000001' * 8),
+                          bt.bitarray('00000010' * 8),
+                          bt.bitarray('00000100' * 8),
+                          bt.bitarray('00001000' * 8),
+                          bt.bitarray('00010000' * 8),
+                          bt.bitarray('00100000' * 8),
+                          bt.bitarray('01000000' * 8),
+                          bt.bitarray('10000000' * 8)]
+        self.__north_rays = self.__count_north_rays()
+        self.__north_east_rays = self.__count_north_east_rays(self.__SECTORS, NULL)
+        self.__east_rays = self.__count_east_rays(self.__SECTORS, NULL)
+        self.__south_east_rays = self.__count_south_east_rays(self.__SECTORS, NULL)
+        self.__south_rays = self.__count_south_rays()
+        self.__south_west_rays = self.__count_south_west_rays(self.__SECTORS, NULL)
+        self.__west_rays = self.__count_west_rays(self.__SECTORS, NULL)
+        self.__north_west_rays = self.__count_north_west_rays(self.__SECTORS, NULL)
+
+    def __convert_to_bitboard(self, board_pos):
+        """
+        This function converts board position,
+        which is represented by number from 0 to 63,
+        from number to bitarray
+
+        :param board_pos: number from 0 to 63
+        :return: bitarray for given position
+        """
+        try:
+            if board_pos < BOTTOM_LEFT or board_pos > TOP_RIGHT:
+                raise ValueError
+
+            bit_pos = bt.bitarray('0' * (TOP_RIGHT - board_pos) + '1' + '0' * board_pos)
+
+            return bit_pos
+
+        except ValueError:
+            print('ERROR: ' + str(board_pos) + ' is invalid position')
+            print('INCORRECT:' + str(BOTTOM_LEFT) + ' <= ' + str(board_pos) + ' <= ' + str(TOP_RIGHT))
+
+            return NULL
