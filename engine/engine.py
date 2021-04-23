@@ -75,7 +75,7 @@ class Grandmaster:
 
         return south_rays
 
-    def __count_east_rays(self, sectors, null):  # #reverse SECTORS from GitHub
+    def __count_east_rays(self):  # #reverse SECTORS from GitHub
         """
         Count rays in east direction
         for all square on the board
@@ -88,17 +88,17 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = east_ray << i * 8
-            mask = ~null
+            mask = ~NULL
             sector = 0
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 east_rays.append((current_ray << j) & mask)
                 sector += 1
 
         return east_rays
 
-    def __count_west_rays(self, sectors, null):  # #reverse SECTORS from GitHub
+    def __count_west_rays(self):  # #reverse SECTORS from GitHub
         """
         Count rays in west direction
         for all square on the board
@@ -111,11 +111,11 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = west_ray >> i * 8
-            mask = ~null
+            mask = ~NULL
             sector = 7
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 west_rays.append((current_ray >> j) & mask)
                 sector -= 1
 
@@ -123,7 +123,7 @@ class Grandmaster:
 
         return west_rays
 
-    def __count_north_east_rays(self, sectors, null):
+    def __count_north_east_rays(self):
         """
         Count rays in north east direction
         for all square on the board
@@ -141,17 +141,17 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = north_east_ray << i * 8
-            mask = ~null
+            mask = ~NULL
             sector = 0
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 north_east_rays.append((current_ray << j) & mask)
                 sector += 1
 
         return north_east_rays
 
-    def __count_south_east_rays(self, sectors, null):
+    def __count_south_east_rays(self):
         """
         Count rays in south east direction
         for all square on the board
@@ -164,11 +164,11 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = south_east_ray >> i * 8
-            mask = ~null
+            mask = ~NULL
             sector, rank = 0, []
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 rank.append((current_ray << j) & mask)
                 sector += 1
 
@@ -179,7 +179,7 @@ class Grandmaster:
 
         return south_east_rays
 
-    def __count_north_west_rays(self, sectors, null):
+    def __count_north_west_rays(self):
         """
         Count rays in north west direction
         for all square on the board
@@ -192,11 +192,11 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = north_west_ray << i * 8
-            mask = ~null
+            mask = ~NULL
             sector, rank = 7, []
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 rank.append((current_ray >> j) & mask)
                 sector -= 1
 
@@ -206,7 +206,7 @@ class Grandmaster:
 
         return north_west_rays
 
-    def __count_south_west_rays(self, sectors, null):
+    def __count_south_west_rays(self):
         """
         Count rays in south west direction
         for all square on the board
@@ -222,11 +222,11 @@ class Grandmaster:
 
         for i in range(8):
             current_ray = south_west_ray >> i * 8
-            mask = ~null
+            mask = ~NULL
             sector = 7
 
             for j in range(8):
-                mask &= ~sectors[sector]
+                mask &= ~self.__SECTORS[sector]
                 south_west_rays.append((current_ray >> j) & mask)
                 sector -= 1
 
@@ -266,13 +266,13 @@ class Grandmaster:
                           bt.bitarray('01000000' * 8),
                           bt.bitarray('10000000' * 8)]
         self.__north_rays = self.__count_north_rays()
-        self.__north_east_rays = self.__count_north_east_rays(self.__SECTORS, NULL)
-        self.__east_rays = self.__count_east_rays(self.__SECTORS, NULL)
-        self.__south_east_rays = self.__count_south_east_rays(self.__SECTORS, NULL)
+        self.__north_east_rays = self.__count_north_east_rays()
+        self.__east_rays = self.__count_east_rays()
+        self.__south_east_rays = self.__count_south_east_rays()
         self.__south_rays = self.__count_south_rays()
-        self.__south_west_rays = self.__count_south_west_rays(self.__SECTORS, NULL)
-        self.__west_rays = self.__count_west_rays(self.__SECTORS, NULL)
-        self.__north_west_rays = self.__count_north_west_rays(self.__SECTORS, NULL)
+        self.__south_west_rays = self.__count_south_west_rays()
+        self.__west_rays = self.__count_west_rays()
+        self.__north_west_rays = self.__count_north_west_rays()
 
     def __convert_to_bitboard(self, board_pos):
         """
