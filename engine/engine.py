@@ -1,280 +1,365 @@
-from constants import *
+"""
+
+There is a GrandMaster chess engine
+
+"""
+
 import bitarray as bt
 
 
-"""
-              Bitboard scheme:
-         f: bit position -> board
-     A    B    C    D    E    F    G    H
-  +----+----+----+----+----+----+----+----+
-8 | 56 | 57 | 58 | 59 | 60 | 61 | 62 | 63 |
-  +----+----+----+----+----+----+----+----+
-7 | 48 | 49 | 50 | 51 | 52 | 53 | 54 | 55 |
-  +----+----+----+----+----+----+----+----+
-6 | 40 | 41 | 42 | 43 | 44 | 45 | 46 | 47 |
-  +----+----+----+----+----+----+----+----+
-5 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39 |
-  +----+----+----+----+----+----+----+----+
-4 | 24 | 25 | 26 | 27 | 28 | 29 | 30 | 31 |
-  +----+----+----+----+----+----+----+----+
-3 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 |
-  +----+----+----+----+----+----+----+----+
-2 |  8 |  9 | 10 | 11 | 12 | 13 | 14 | 15 |
-  +----+----+----+----+----+----+----+----+
-1 |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |
-  +----+----+----+----+----+----+----+----+
-  
-                     TERMS
-//---------------------------------------------//
-RANK - board's row, for example, 1
-SECTOR - board's column, for example, A
-SLIDING FIGURE - queen, bishop, rook
-RAY - direction which sliding figure can attack 
-"""
+from constants import *
+from rays import NORTH_RAYS
+from rays import SOUTH_RAYS
+from rays import WEST_RAYS
+from rays import EAST_RAYS
+from rays import NORTH_WEST_RAYS
+from rays import NORTH_EAST_RAYS
+from rays import SOUTH_WEST_RAYS
+from rays import SOUTH_EAST_RAYS
 
 
 class Grandmaster:
 
-    def __count_north_rays(self):
+    def __init__(self):
+
+        self.__player = {'pawns': bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
+                         'rook': bt.bitarray('0' * 56 + '1' + '0' * 6 + '1'),
+                         'knight': bt.bitarray('0' * 57 + '1' + '0' * 4 + '1' + '0'),
+                         'bishop': bt.bitarray('0' * 58 + '1' + '0' * 2 + '1' + '0' * 2),
+                         'queen': bt.bitarray('0' * 59 + '1' + '0' * 4),
+                         'king': bt.bitarray('0' * 60 + '1' + '0' * 3)}
+        self.__computer = {'pawns': bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
+                           'rook': bt.bitarray('1' + '0' * 6 + '1' + '0' * 56),
+                           'knight': bt.bitarray('0' + '1' + '0' * 4 + '1' + '0' * 57),
+                           'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
+                           'queen': bt.bitarray('0' * 3 + '1' + '0' * 60),
+                           'king': bt.bitarray('0' * 4 + '1' + '0' * 59)}
+
+    # occupied area counters
+    # ******************************************************************************************************************
+
+    def __count_players_occupied_area(self):
         """
-        Count rays in north direction
-        for all square on the board
+        This function calculates areas occupied
+        by player's figures
 
-        :return: array of north rays
+        :return: bitboard of occupied area
         """
+        occupied = NULL.copy()
 
-        north_rays = []
-        north_ray = bt.bitarray('00000001' * 7 + '0' * 8)
+        for i in self.__player.values():
+            occupied |= i
 
-        for i in range(8):
-            current_ray = north_ray << i * 8
+        return occupied
 
-            for j in range(8):
-                north_rays.append(current_ray << j)
-
-        return north_rays
-
-    def __count_south_rays(self):
+    def __count_computer_occupied_area(self):
         """
-        Count rays in north direction
-        for all square on the board
+        This function calculates areas occupied
+        by player's figures
 
-        :return: array of north rays
-        """
-
-        south_rays = []
-        south_ray = bt.bitarray('0' * 8 + '10000000' * 7)
-
-        for i in range(8):
-            current_ray = south_ray >> i * 8
-
-            for j in range(8):
-                south_rays.append(current_ray >> j)
-
-        south_rays.reverse()
-
-        return south_rays
-
-    def __count_east_rays(self):  # #reverse SECTORS from GitHub
-        """
-        Count rays in east direction
-        for all square on the board
-
-        :return: array of east rays
+        :return: bitboard of occupied area
         """
 
-        east_rays = []
-        east_ray = bt.bitarray('0' * 56 + '1' * 7 + '0')
+        occupied = NULL.copy()
 
-        for i in range(8):
-            current_ray = east_ray << i * 8
-            mask = ~NULL
-            sector = 0
+        for i in self.__computer.values():
+            occupied |= i
 
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                east_rays.append((current_ray << j) & mask)
-                sector += 1
+        return occupied
 
-        return east_rays
-
-    def __count_west_rays(self):  # #reverse SECTORS from GitHub
+    def __count_occupied_area(self):
         """
-        Count rays in west direction
-        for all square on the board
+        This function counts which zones are
+        free and which zones are occupied
 
-        :return: array of west rays
+        :return:
         """
 
-        west_rays = []
-        west_ray = bt.bitarray('0' + '1' * 7 + '0' * 56)
+        player = self.__count_players_occupied_area()
+        computer = self.__count_computer_occupied_area()
 
-        for i in range(8):
-            current_ray = west_ray >> i * 8
-            mask = ~NULL
-            sector = 7
+        return player | computer
 
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                west_rays.append((current_ray >> j) & mask)
-                sector -= 1
+    # msn / lsn
+    # ******************************************************************************************************************
 
-        west_rays.reverse()
-
-        return west_rays
-
-    def __count_north_east_rays(self):
+    @staticmethod
+    def most_significant_pos(bitboard):
         """
-        Count rays in north east direction
-        for all square on the board
+        This function finds number of board pos
+        of most significant bit in bitboard
 
-        :return: array of north east rays
+        :param bitboard: bitarray
+        :return: number of board pos
         """
 
-        north_east_rays = []
-        north_east_ray = bt.bitarray('100000000' * 8)
+        pos = len(bitboard)
 
-        for i in range(8):
-            north_east_ray.pop(-1)
+        if True in bitboard:
+            pos = bitboard.index(True)
 
-        north_east_ray[-1] = False
+        return TOP_RIGHT - pos
 
-        for i in range(8):
-            current_ray = north_east_ray << i * 8
-            mask = ~NULL
-            sector = 0
-
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                north_east_rays.append((current_ray << j) & mask)
-                sector += 1
-
-        return north_east_rays
-
-    def __count_south_east_rays(self):
+    @staticmethod
+    def less_significant_pos(bitboard):
         """
-        Count rays in south east direction
-        for all square on the board
+        This function finds number of board pos
+        of less significant bit in bitboard
 
-        :return: array of south east rays
+        :param bitboard: bitarray
+        :return: number of board pos
         """
 
-        south_east_rays = []
-        south_east_ray = bt.bitarray('0' * 14 + '1000000' * 7 + '0')
+        pos = len(bitboard)
 
-        for i in range(8):
-            current_ray = south_east_ray >> i * 8
-            mask = ~NULL
-            sector, rank = 0, []
+        board = bitboard.copy()
+        board.reverse()
 
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                rank.append((current_ray << j) & mask)
-                sector += 1
+        if True in board:
+            ind = board.index(True)
+            pos = len(board) - 1 - ind
 
-            rank.reverse()
-            south_east_rays = south_east_rays + rank
+        return TOP_RIGHT - pos
 
-        south_east_rays.reverse()
+    # pawn moves section
+    # ******************************************************************************************************************
 
-        return south_east_rays
+    def __count_pawn_pushes(self, side, computer_pawn=NULL):
 
-    def __count_north_west_rays(self):
-        """
-        Count rays in north west direction
-        for all square on the board
+        occupied = self.__count_occupied_area()
+        single = NULL.copy()
+        double = NULL.copy()
 
-        :return: array of north west rays
-        """
+        if side == PLAYER:
+            single = self.__player['pawns'] << 8
+            double = (self.__player['pawns'] & RANKS[1]) << 16
 
-        north_west_rays = []
-        north_west_ray = bt.bitarray('0' * 7 + '1000000' * 7 + '0' * 8)
+        elif side == COMPUTER:
+            single = computer_pawn >> 8
+            double = (computer_pawn & RANKS[6]) >> 16
 
-        for i in range(8):
-            current_ray = north_west_ray << i * 8
-            mask = ~NULL
-            sector, rank = 7, []
+        return (single | double) & ~occupied
 
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                rank.append((current_ray >> j) & mask)
-                sector -= 1
+    def __count_pawn_attacks(self, side, computer_pawn=NULL):
 
-            rank.reverse()
+        enemy = NULL.copy()
+        west = NULL.copy()
+        east = NULL.copy()
 
-            north_west_rays = north_west_rays + rank
+        if side == PLAYER:
+            enemy = self.__count_computer_occupied_area()
+            west = (self.__player['pawns'] << 7) & ~SECTORS[7]
+            east = (self.__player['pawns'] << 9) & ~SECTORS[0]
 
-        return north_west_rays
+        elif side == COMPUTER:
+            enemy = self.__count_players_occupied_area()
+            west = (computer_pawn >> 9) & ~SECTORS[7]
+            east = (computer_pawn >> 7) & ~SECTORS[0]
 
-    def __count_south_west_rays(self):
-        """
-        Count rays in south west direction
-        for all square on the board
+        return (west | east) & enemy
 
-        :return: array of south west rays
-        """
+    # knight moves section
+    # ******************************************************************************************************************
 
-        south_west_rays = []
-        south_west_ray = bt.bitarray('0' * 9 + '100000000' * 7)
+    def __count_knight_rose(self, side, computer_knight=NULL):
 
-        for i in range(8):
-            south_west_ray.pop(-1)
+        knight = NULL.copy()
 
-        for i in range(8):
-            current_ray = south_west_ray >> i * 8
-            mask = ~NULL
-            sector = 7
+        not_a_b = ~SECTORS[0] & ~SECTORS[1]
+        not_g_h = ~SECTORS[6] & ~SECTORS[7]
 
-            for j in range(8):
-                mask &= ~self.__SECTORS[sector]
-                south_west_rays.append((current_ray >> j) & mask)
-                sector -= 1
+        if side == PLAYER:
+            knight = self.__player['knight'].copy()
 
-        south_west_rays.reverse()
+        elif side == COMPUTER:
+            knight = computer_knight
 
-        return south_west_rays
+        nne = (knight << 17) & ~SECTORS[0]
+        nee = (knight << 10) & not_a_b
+        see = (knight >> 6) & not_a_b
+        sse = (knight >> 15) & ~SECTORS[0]
+        nnw = (knight << 15) & ~SECTORS[7]
+        nww = (knight << 6) & not_g_h
+        sww = (knight >> 10) & not_g_h
+        ssw = (knight >> 17) & ~SECTORS[7]
 
-    def __init__(self, player_color):
+        rose = nne | nee | see | sse | nnw | nww | sww | ssw
 
-        self.__player_color = player_color
-        self.__white = {'pawns': bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
-                        'rook': bt.bitarray('0' * 56 + '1' + '0' * 6 + '1'),
-                        'knight': bt.bitarray('0' * 57 + '1' + '0' * 4 + '1' + '0'),
-                        'bishop': bt.bitarray('0' * 58 + '1' + '0' * 2 + '1' + '0' * 2),
-                        'queen': bt.bitarray('0' * 59 + '1' + '0' * 4),
-                        'king': bt.bitarray('0' * 60 + '1' + '0' * 3)}
-        self.__black = {'pawns': bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
-                        'rook': bt.bitarray('1' + '0' * 6 + '1' + '0' * 56),
-                        'knight': bt.bitarray('0' + '1' + '0' * 4 + '1' + '0' * 57),
-                        'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
-                        'queen': bt.bitarray('0' * 3 + '1' + '0' * 60),
-                        'king': bt.bitarray('0' * 4 + '1' + '0' * 59)}
-        self.__RANKS = [bt.bitarray('0' * 56 + '1' * 8),
-                        bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
-                        bt.bitarray('0' * 40 + '1' * 8 + '0' * 16),
-                        bt.bitarray('0' * 32 + '1' * 8 + '0' * 24),
-                        bt.bitarray('0' * 24 + '1' * 8 + '0' * 32),
-                        bt.bitarray('0' * 16 + '1' * 8 + '0' * 40),
-                        bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
-                        bt.bitarray('1' * 8 + '0' * 56)]
-        self.__SECTORS = [bt.bitarray('00000001' * 8),
-                          bt.bitarray('00000010' * 8),
-                          bt.bitarray('00000100' * 8),
-                          bt.bitarray('00001000' * 8),
-                          bt.bitarray('00010000' * 8),
-                          bt.bitarray('00100000' * 8),
-                          bt.bitarray('01000000' * 8),
-                          bt.bitarray('10000000' * 8)]
-        self.__north_rays = self.__count_north_rays()
-        self.__north_east_rays = self.__count_north_east_rays()
-        self.__east_rays = self.__count_east_rays()
-        self.__south_east_rays = self.__count_south_east_rays()
-        self.__south_rays = self.__count_south_rays()
-        self.__south_west_rays = self.__count_south_west_rays()
-        self.__west_rays = self.__count_west_rays()
-        self.__north_west_rays = self.__count_north_west_rays()
+        return rose
 
-    def __convert_to_bitboard(self, board_pos):
+    def __count_knight_pushes(self, side, computer_knight=NULL):
+
+        rose = self.__count_knight_rose(side, computer_knight)
+        occupied = self.__count_occupied_area()
+
+        return rose & ~occupied
+
+    def __count_knight_attacks(self, side, computer_knight=NULL):
+
+        rose = self.__count_knight_rose(side, computer_knight)
+        enemy = NULL.copy()
+
+        if side == PLAYER:
+            enemy = self.__count_computer_occupied_area()
+
+        elif side == COMPUTER:
+            enemy = self.__count_players_occupied_area()
+
+        return rose & enemy
+
+    # rose calculator
+    # ******************************************************************************************************************
+
+    def __count_rose(self, figure_pos, less_cut, most_cut):
+
+        occupied = self.__count_occupied_area()
+
+        rose = NULL.copy()
+
+        for l_ray in less_cut:
+            ray = l_ray[figure_pos].copy()
+            block = ray & occupied
+
+            if block != NULL:
+                block_pos = self.less_significant_pos(block)
+                block_ray = l_ray[block_pos].copy()
+                ray &= ~block_ray
+
+            rose |= ray
+
+        for m_ray in most_cut:
+            ray = m_ray[figure_pos].copy()
+            block = ray & occupied
+
+            if block != NULL:
+                block_pos = self.most_significant_pos(block)
+                block_ray = m_ray[block_pos].copy()
+                ray &= ~block_ray
+
+            rose |= ray
+
+        return rose
+
+    # sliding figures move sections
+    # ******************************************************************************************************************
+
+    @staticmethod
+    def __count_sliding_rays(figure_type):
+
+        less_cut, most_cut = [], []
+
+        if figure_type == BISHOP:
+            less_cut = [NORTH_WEST_RAYS, NORTH_EAST_RAYS]
+            most_cut = [SOUTH_WEST_RAYS, SOUTH_EAST_RAYS]
+
+        elif figure_type == ROOK:
+            less_cut = [NORTH_RAYS, WEST_RAYS]
+            most_cut = [SOUTH_RAYS, EAST_RAYS]
+
+        elif figure_type == QUEEN:
+            less_cut = [NORTH_WEST_RAYS, NORTH_EAST_RAYS, NORTH_RAYS, WEST_RAYS]
+            most_cut = [SOUTH_WEST_RAYS, SOUTH_EAST_RAYS, SOUTH_RAYS, EAST_RAYS]
+
+        return less_cut, most_cut
+
+    def __count_single_sliding_pushes(self, figure_type, figure_pos):
+
+        less_cut, most_cut = self.__count_sliding_rays(figure_type)
+
+        rose = self.__count_rose(figure_pos, less_cut, most_cut)
+        occupied = self.__count_occupied_area()
+
+        return rose & ~occupied
+
+    def __count_sliding_pushes(self, side, figure_type):
+
+        figures = NULL.copy()
+
+        if side == PLAYER:
+            figures = self.__player[figure_type].copy()
+
+        elif side == COMPUTER:
+            figures = self.__computer[figure_type].copy()
+
+        first_pos = self.most_significant_pos(figures)
+        second_pos = self.less_significant_pos(figures)
+        first_push = NULL.copy()
+        second_push = NULL.copy()
+
+        if first_pos <= TOP_RIGHT:
+            first_push = self.__count_single_sliding_pushes(figure_type, first_pos)
+
+        if second_pos <= TOP_RIGHT:
+            second_push = self.__count_single_sliding_pushes(figure_type, second_pos)
+
+        return first_push | second_push
+
+    def __count_single_sliding_attacks(self, side, figure_type, figure_pos):
+
+        less_cut, most_cut = self.__count_sliding_rays(figure_type)
+        rose = self.__count_rose(figure_pos, less_cut, most_cut)
+        enemy = NULL.copy()
+
+        if side == PLAYER:
+            enemy = self.__count_computer_occupied_area()
+
+        elif side == COMPUTER:
+            enemy = self.__count_players_occupied_area()
+
+        return rose & enemy
+
+    def __count_sliding_attacks(self, side, figure_type):
+
+        figures = NULL.copy()
+
+        if side == PLAYER:
+            figures = self.__player[figure_type].copy()
+
+        elif side == COMPUTER:
+            figures = self.__computer[figure_type].copy()
+
+        first_pos = self.most_significant_pos(figures)
+        second_pos = self.less_significant_pos(figures)
+        first_attack = NULL.copy()
+        second_attack = NULL.copy()
+
+        if first_pos <= TOP_RIGHT:
+            first_attack = self.__count_single_sliding_attacks(PLAYER, figure_type, first_pos)
+
+        if second_pos <= TOP_RIGHT:
+            second_attack = self.__count_single_sliding_attacks(PLAYER, figure_type, second_pos)
+
+        return first_attack | second_attack
+
+    # king moves section
+    # ******************************************************************************************************************
+
+    def __count_taboo_area(self, side):
+
+        taboo = NULL.copy()
+
+        if side == PLAYER:
+            pawns = self.__count_pawn_attacks(COMPUTER, self.__computer['pawns'])
+            knight = self.__count_knight_attacks(COMPUTER, self.__computer['knight'])
+            rook = self.__count_sliding_attacks(COMPUTER, ROOK)
+            bishop = self.__count_sliding_attacks(COMPUTER, BISHOP)
+            queen = self.__count_sliding_attacks(COMPUTER, QUEEN)
+
+            taboo |= pawns | knight | rook | bishop | queen
+
+        elif side == COMPUTER:
+            pawns = self.__count_pawn_attacks(PLAYER)
+            knight = self.__count_knight_attacks(PLAYER)
+            rook = self.__count_sliding_attacks(PLAYER, ROOK)
+            bishop = self.__count_sliding_attacks(PLAYER, BISHOP)
+            queen = self.__count_sliding_attacks(PLAYER, QUEEN)
+
+            taboo |= pawns | knight | rook | bishop | queen
+            
+        return taboo
+
+    @staticmethod
+    def convert_to_bitboard(board_pos):
         """
         This function converts board position,
         which is represented by number from 0 to 63,
