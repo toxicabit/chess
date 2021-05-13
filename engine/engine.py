@@ -34,6 +34,7 @@ class Grandmaster:
                           'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
                           'queen': bt.bitarray('0' * 4 + '1' + '0' * 59),
                           'king': bt.bitarray('0' * 3 + '1' + '0' * 60)}
+        self.__previous = 0
 
     # choice
     # ******************************************************************************************************************
@@ -575,6 +576,19 @@ class Grandmaster:
     # public methods
     # ******************************************************************************************************************
 
+    def is_empty(self, side, fig_pos):
+
+        fig_bit = self.__convert_to_bitboard(fig_pos)
+        figures = self.__count_player2_occupied_area()
+
+        if side == PLAYER2:
+            figures = self.__count_player2_occupied_area()
+
+        if (fig_bit & figures) == NULL:
+            return True
+
+        return False
+
     def is_game_over(self):
 
         checkmate1 = self.__is_checkmate(PLAYER1)
@@ -621,6 +635,9 @@ class Grandmaster:
 
             return SUCCESS
 
+        if side == self.__previous:
+            return FAIL
+
         from_bit = self.__convert_to_bitboard(f_pos)
         to_bit = self.__convert_to_bitboard(t_pos)
         figures = self.__choose_bitboard(side, figure_type)
@@ -639,5 +656,7 @@ class Grandmaster:
 
         else:
             return FAIL
+
+        self.__previous = side
 
         return SUCCESS
