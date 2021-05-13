@@ -22,69 +22,78 @@ class Grandmaster:
 
     def __init__(self):
 
-        self.__player = {'pawns': bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
-                         'rook': bt.bitarray('0' * 56 + '1' + '0' * 6 + '1'),
-                         'knight': bt.bitarray('0' * 57 + '1' + '0' * 4 + '1' + '0'),
-                         'bishop': bt.bitarray('0' * 58 + '1' + '0' * 2 + '1' + '0' * 2),
-                         'queen': bt.bitarray('0' * 59 + '1' + '0' * 4),
-                         'king': bt.bitarray('0' * 60 + '1' + '0' * 3)}
-        self.__computer = {'pawns': bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
-                           'rook': bt.bitarray('1' + '0' * 6 + '1' + '0' * 56),
-                           'knight': bt.bitarray('0' + '1' + '0' * 4 + '1' + '0' * 57),
-                           'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
-                           'queen': bt.bitarray('0' * 3 + '1' + '0' * 60),
-                           'king': bt.bitarray('0' * 4 + '1' + '0' * 59)}
+        self.__player1 = {'pawn': bt.bitarray('0' * 48 + '1' * 8 + '0' * 8),
+                          'rook': bt.bitarray('0' * 56 + '1' + '0' * 6 + '1'),
+                          'knight': bt.bitarray('0' * 57 + '1' + '0' * 4 + '1' + '0'),
+                          'bishop': bt.bitarray('0' * 58 + '1' + '0' * 2 + '1' + '0' * 2),
+                          'queen': bt.bitarray('0' * 60 + '1' + '0' * 3),
+                          'king': bt.bitarray('0' * 59 + '1' + '0' * 4)}
+        self.__player2 = {'pawn': bt.bitarray('0' * 8 + '1' * 8 + '0' * 48),
+                          'rook': bt.bitarray('1' + '0' * 6 + '1' + '0' * 56),
+                          'knight': bt.bitarray('0' + '1' + '0' * 4 + '1' + '0' * 57),
+                          'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
+                          'queen': bt.bitarray('0' * 4 + '1' + '0' * 59),
+                          'king': bt.bitarray('0' * 3 + '1' + '0' * 60)}
 
-    # occupied area counters
+    # choice
     # ******************************************************************************************************************
 
-    def __count_players_occupied_area(self):
-        """
-        This function calculates areas occupied
-        by player's figures
+    def __choose_bitboard(self, side, figure_type):
 
-        :return: bitboard of occupied area
-        """
-        occupied = NULL.copy()
+        bitboard = NULL.copy()
 
-        for i in self.__player.values():
-            occupied |= i
+        if side == PLAYER1:
+            bitboard = self.__player1[figure_type].copy()
 
-        return occupied
+        elif side == PLAYER2:
+            bitboard = self.__player2[figure_type].copy()
 
-    def __count_computer_occupied_area(self):
-        """
-        This function calculates areas occupied
-        by player's figures
+        return bitboard
 
-        :return: bitboard of occupied area
-        """
+    def __choose_enemy(self, side):
 
-        occupied = NULL.copy()
+        enemy = NULL.copy()
 
-        for i in self.__computer.values():
-            occupied |= i
+        if side == PLAYER1:
+            enemy = self.__count_player2_occupied_area()
 
-        return occupied
+        elif side == PLAYER2:
+            enemy = self.__count_player1_occupied_area()
 
-    def __count_occupied_area(self):
-        """
-        This function counts which zones are
-        free and which zones are occupied
+        return enemy
 
-        :return:
-        """
-
-        player = self.__count_players_occupied_area()
-        computer = self.__count_computer_occupied_area()
-
-        return player | computer
-
-    # msn / lsn
+    # converter
     # ******************************************************************************************************************
 
     @staticmethod
-    def most_significant_pos(bitboard):
+    def __convert_to_bitboard(board_pos):
+        """
+        This function converts board position,
+        which is represented by number from 0 to 63,
+        from number to bitarray
+
+        :param board_pos: number from 0 to 63
+        :return: bitarray for given position
+        """
+        try:
+            if board_pos < BOTTOM_LEFT or board_pos > TOP_RIGHT:
+                raise ValueError
+
+            bit_pos = bt.bitarray('0' * (TOP_RIGHT - board_pos) + '1' + '0' * board_pos)
+
+            return bit_pos
+
+        except ValueError:
+            print('ERROR: ' + str(board_pos) + ' is invalid position')
+            print('INCORRECT:' + str(BOTTOM_LEFT) + ' <= ' + str(board_pos) + ' <= ' + str(TOP_RIGHT))
+
+            return NULL.copy()
+
+    # msp / lsp
+    # ******************************************************************************************************************
+
+    @staticmethod
+    def __most_significant_pos(bitboard):
         """
         This function finds number of board pos
         of most significant bit in bitboard
@@ -101,7 +110,7 @@ class Grandmaster:
         return TOP_RIGHT - pos
 
     @staticmethod
-    def less_significant_pos(bitboard):
+    def __less_significant_pos(bitboard):
         """
         This function finds number of board pos
         of less significant bit in bitboard
@@ -121,35 +130,76 @@ class Grandmaster:
 
         return TOP_RIGHT - pos
 
-    # choice
+    # occupied area counters
     # ******************************************************************************************************************
 
-    def __choose_bitboard(self, side, figure_type):
+    def __count_player1_occupied_area(self):
+        """
+        This function calculates areas occupied
+        by player's figures
 
-        bitboard = NULL.copy()
+        :return: bitboard of occupied area
+        """
+        occupied = NULL.copy()
 
-        if side == PLAYER:
-            bitboard = self.__player[figure_type].copy()
+        for i in self.__player1.values():
+            occupied |= i
 
-        elif side == COMPUTER:
-            bitboard = self.__computer[figure_type].copy()
+        return occupied
 
-        return bitboard
+    def __count_player2_occupied_area(self):
+        """
+        This function calculates areas occupied
+        by player's figures
 
-    def __choose_enemy(self, side):
+        :return: bitboard of occupied area
+        """
 
-        enemy = NULL.copy()
+        occupied = NULL.copy()
 
-        if side == PLAYER:
-            enemy = self.__count_computer_occupied_area()
+        for i in self.__player2.values():
+            occupied |= i
 
-        elif side == COMPUTER:
-            enemy = self.__count_players_occupied_area()
+        return occupied
 
-        return enemy
+    def __count_occupied_area(self):
+        """
+        This function counts which zones are
+        free and which zones are occupied
+
+        :return:
+        """
+
+        player = self.__count_player1_occupied_area()
+        computer = self.__count_player2_occupied_area()
+
+        return player | computer
 
     # pawn moves section
     # ******************************************************************************************************************
+
+    @staticmethod
+    def __count_pawn_single_defend(side, pawn_bitboard):
+
+        west = NULL.copy()
+        east = NULL.copy()
+
+        if side == PLAYER1:
+            west = (pawn_bitboard << 7) & ~SECTORS[7]
+            east = (pawn_bitboard << 9) & ~SECTORS[0]
+
+        elif side == PLAYER2:
+            west = (pawn_bitboard >> 9) & ~SECTORS[7]
+            east = (pawn_bitboard >> 7) & ~SECTORS[0]
+
+        return west | east
+
+    def __count_pawn_multi_defend(self, side):
+
+        pawn_bitboard = self.__choose_bitboard(side, PAWN)
+        pawn_defends = self.__count_pawn_single_defend(side, pawn_bitboard)
+
+        return pawn_defends
 
     def __count_pawn_push(self, side, pawn_bitboard):
 
@@ -157,11 +207,11 @@ class Grandmaster:
         single = NULL.copy()
         double = NULL.copy()
 
-        if side == PLAYER:
+        if side == PLAYER1:
             single = pawn_bitboard << 8
             double = (pawn_bitboard & RANKS[1]) << 16
 
-        elif side == COMPUTER:
+        elif side == PLAYER2:
             single = pawn_bitboard >> 8
             double = (pawn_bitboard & RANKS[6]) >> 16
 
@@ -169,26 +219,14 @@ class Grandmaster:
 
     def __count_pawn_single_attack(self, side, pawn_bitboard):
 
-        enemy = NULL.copy()
-        west = NULL.copy()
-        east = NULL.copy()
+        enemy = self.__choose_enemy(side)
+        defend = self.__count_pawn_single_defend(side, pawn_bitboard)
 
-        if side == PLAYER:
-            enemy = self.__count_computer_occupied_area()
-            west = (pawn_bitboard << 7) & ~SECTORS[7]
-            east = (pawn_bitboard << 9) & ~SECTORS[0]
-
-        elif side == COMPUTER:
-            enemy = self.__count_players_occupied_area()
-            west = (pawn_bitboard >> 9) & ~SECTORS[7]
-            east = (pawn_bitboard >> 7) & ~SECTORS[0]
-
-        return (west | east) & enemy
+        return defend & enemy
 
     def __count_pawn_multi_attack(self, side):
 
         pawn_bitboard = self.__choose_bitboard(side, PAWN)
-
         pawn_attacks = self.__count_pawn_single_attack(side, pawn_bitboard)
 
         return pawn_attacks
@@ -197,7 +235,7 @@ class Grandmaster:
     # ******************************************************************************************************************
 
     @staticmethod
-    def __count_knight_rose(knight_bitboard):
+    def __count_knight_defend(knight_bitboard):
 
         knight = knight_bitboard
 
@@ -213,23 +251,23 @@ class Grandmaster:
         sww = (knight >> 10) & not_g_h
         ssw = (knight >> 17) & ~SECTORS[7]
 
-        rose = nne | nee | see | sse | nnw | nww | sww | ssw
+        defend = nne | nee | see | sse | nnw | nww | sww | ssw
 
-        return rose
+        return defend
 
     def __count_knight_push(self, knight_bitboard):
 
-        rose = self.__count_knight_rose(knight_bitboard)
+        defend = self.__count_knight_defend(knight_bitboard)
         occupied = self.__count_occupied_area()
 
-        return rose & ~occupied
+        return defend & ~occupied
 
     def __count_knight_single_attack(self, side, knight_bitboard):
 
-        rose = self.__count_knight_rose(knight_bitboard)
+        defend = self.__count_knight_defend(knight_bitboard)
         enemy = self.__choose_enemy(side)
 
-        return rose & enemy
+        return defend & enemy
 
     def __count_knight_multi_attack(self, side):
 
@@ -239,13 +277,13 @@ class Grandmaster:
 
         return knight_attacks
 
-    # rose calculator
+    # sliding figures move sections
     # ******************************************************************************************************************
 
-    def __count_rose(self, figure_pos, less_cut, most_cut):
+    def __count_rose(self, figure_type, figure_pos):
 
         occupied = self.__count_occupied_area()
-
+        less_cut, most_cut = self.__count_sliding_rays(figure_type)
         rose = NULL.copy()
 
         for l_ray in less_cut:
@@ -253,7 +291,7 @@ class Grandmaster:
             block = ray & occupied
 
             if block != NULL:
-                block_pos = self.less_significant_pos(block)
+                block_pos = self.__less_significant_pos(block)
                 block_ray = l_ray[block_pos].copy()
                 ray &= ~block_ray
 
@@ -264,16 +302,13 @@ class Grandmaster:
             block = ray & occupied
 
             if block != NULL:
-                block_pos = self.most_significant_pos(block)
+                block_pos = self.__most_significant_pos(block)
                 block_ray = m_ray[block_pos].copy()
                 ray &= ~block_ray
 
             rose |= ray
 
         return rose
-
-    # sliding figures move sections
-    # ******************************************************************************************************************
 
     @staticmethod
     def __count_sliding_rays(figure_type):
@@ -294,39 +329,43 @@ class Grandmaster:
 
         return less_cut, most_cut
 
+    def __count_sliding_multi_defend(self, side, figure_type):
+
+        figures = self.__choose_bitboard(side, figure_type)
+
+        first_pos = self.__most_significant_pos(figures)
+        second_pos = self.__less_significant_pos(figures)
+        first_defend = NULL.copy()
+        second_defend = NULL.copy()
+
+        if first_pos <= TOP_RIGHT:
+            first_defend = self.__count_rose(figure_type, first_pos)
+
+        if second_pos <= TOP_RIGHT:
+            second_defend = self.__count_rose(figure_type, second_pos)
+
+        return first_defend | second_defend
+
     def __count_sliding_push(self, figure_type, figure_pos):
 
-        less_cut, most_cut = self.__count_sliding_rays(figure_type)
-
-        rose = self.__count_rose(figure_pos, less_cut, most_cut)
+        rose = self.__count_rose(figure_type, figure_pos)
         occupied = self.__count_occupied_area()
 
         return rose & ~occupied
 
     def __count_sliding_single_attack(self, side, figure_type, figure_pos):
 
-        less_cut, most_cut = self.__count_sliding_rays(figure_type)
-        rose = self.__count_rose(figure_pos, less_cut, most_cut)
+        rose = self.__count_rose(figure_type, figure_pos)
         enemy = self.__choose_enemy(side)
 
         return rose & enemy
 
     def __count_sliding_multi_attack(self, side, figure_type):
 
-        figures = self.__choose_bitboard(side, figure_type)
+        enemy = self.__choose_enemy(side)
+        defend = self.__count_sliding_multi_defend(side, figure_type)
 
-        first_pos = self.most_significant_pos(figures)
-        second_pos = self.less_significant_pos(figures)
-        first_attack = NULL.copy()
-        second_attack = NULL.copy()
-
-        if first_pos <= TOP_RIGHT:
-            first_attack = self.__count_sliding_single_attack(PLAYER, figure_type, first_pos)
-
-        if second_pos <= TOP_RIGHT:
-            second_attack = self.__count_sliding_single_attack(PLAYER, figure_type, second_pos)
-
-        return first_attack | second_attack
+        return defend & enemy
 
     # king moves section
     # ******************************************************************************************************************
@@ -334,16 +373,17 @@ class Grandmaster:
     def __count_taboo_area(self, side):
 
         taboo = NULL.copy()
-        opposite_side = COMPUTER
+        opposite_side = PLAYER2
 
-        if side == COMPUTER:
-            opposite_side = PLAYER
+        if side == PLAYER2:
+            opposite_side = PLAYER1
 
-        pawns = self.__count_pawn_multi_attack(opposite_side)
-        knight = self.__count_knight_multi_attack(opposite_side)
-        rook = self.__count_sliding_multi_attack(opposite_side, ROOK)
-        bishop = self.__count_sliding_multi_attack(opposite_side, BISHOP)
-        queen = self.__count_sliding_multi_attack(opposite_side, QUEEN)
+        pawns = self.__count_pawn_multi_defend(opposite_side)
+        knight_bitboard = self.__choose_bitboard(opposite_side, KNIGHT)
+        knight = self.__count_knight_defend(knight_bitboard)
+        rook = self.__count_sliding_multi_defend(opposite_side, ROOK)
+        bishop = self.__count_sliding_multi_defend(opposite_side, BISHOP)
+        queen = self.__count_sliding_multi_defend(opposite_side, QUEEN)
 
         taboo |= pawns | knight | rook | bishop | queen
             
@@ -381,7 +421,26 @@ class Grandmaster:
 
         return rose & enemy
 
-    # move
+    def __is_king_under_attack(self, side):
+
+        taboo = self.__count_taboo_area(side)
+        king = self.__choose_bitboard(side, KING)
+
+        if (king & taboo) != NULL.copy():
+            return True
+
+        return False
+
+    def __king_enemy(self, side):
+
+        enemy = self.__choose_enemy(side)
+        king_bitboard = self.__choose_bitboard(side, KING)
+        king_pos = self.__most_significant_pos(king_bitboard)
+        attack_directions = self.__count_rose(QUEEN, king_pos)
+
+        return enemy & attack_directions
+
+    # move general
     # ******************************************************************************************************************
 
     def __count_possible_pushes(self, side, figure_type, from_bitboard=NULL.copy(), from_pos=BOTTOM_LEFT):
@@ -432,15 +491,34 @@ class Grandmaster:
 
         return attacks
 
+    def __count_possible_multi_move(self, side):
+
+        pawn_bitboard = self.__choose_bitboard(side, PAWN)
+        pp = self.__count_pawn_push(side, pawn_bitboard)
+        pa = self.__count_pawn_multi_attack(side)
+        knight_bitboard = self.__choose_bitboard(side, KNIGHT)
+        kp = self.__count_knight_push(knight_bitboard)
+        ka = self.__count_knight_multi_attack(side)
+        bpa = self.__count_sliding_multi_defend(side, BISHOP)
+        rpa = self.__count_sliding_multi_defend(side, ROOK)
+        qpa = self.__count_sliding_multi_attack(side, QUEEN)
+        kip = self.__count_king_push(side)
+        kia = self.__count_king_attack(side)
+
+        pushes = pp | kp | kip
+        attacks = pa | ka | bpa | rpa | qpa | kia
+
+        return pushes | attacks
+
     def __make_move(self, side, figure_type, from_bitboard, to_bitboard):
 
         move = from_bitboard | to_bitboard
 
-        if side == PLAYER:
-            self.__player[figure_type] ^= move
+        if side == PLAYER1:
+            self.__player1[figure_type] ^= move
 
-        elif side == COMPUTER:
-            self.__computer[figure_type] ^= move
+        elif side == PLAYER2:
+            self.__player2[figure_type] ^= move
 
         return
 
@@ -448,41 +526,61 @@ class Grandmaster:
 
         self.__make_move(side, figure_type, from_bitboard, to_bitboard)
 
-        if side == PLAYER:
-            for key, value in self.__computer.items():
+        if side == PLAYER1:
+            for key, value in self.__player2.items():
                 if (to_bitboard & value) != NULL:
-                    self.__computer[key] ^= to_bitboard
+                    self.__player2[key] ^= to_bitboard
                     break
 
-        elif side == COMPUTER:
-            for key, value in self.__player.items():
+        elif side == PLAYER2:
+            for key, value in self.__player1.items():
                 if (to_bitboard & value) != NULL:
-                    self.__player[key] ^= to_bitboard
+                    self.__player1[key] ^= to_bitboard
                     break
 
         return
 
-    def player_move(self, figure_type, f_pos, t_pos):
+    # warning situations
+    # ******************************************************************************************************************
 
-        from_bit = self.convert_to_bitboard(f_pos)
-        to_bit = self.convert_to_bitboard(t_pos)
+    def __is_checkmate(self, side):
 
-        if (from_bit & self.__player[figure_type]) == NULL:
-            return FAIL
+        king_attacked = self.__is_king_under_attack(side)
+        king_pushes = self.__count_king_push(side)
+        king_attacks = self.__count_king_attack(side)
+        king_enemy = self.__king_enemy(side)
+        others_moves = self.__count_possible_multi_move(side)
 
-        possible_pushes = self.__count_possible_pushes(PLAYER, figure_type, from_bit, f_pos)
-        possible_attacks = self.__count_possible_attacks(PLAYER, figure_type, from_bit, f_pos)
+        no_moves = (king_pushes & king_attacks) == NULL
+        many_enemies = (king_enemy.count(True)) > 1
+        nobody_save = (king_enemy & others_moves) == NULL
 
-        if (to_bit & possible_pushes) != NULL:
-            self.__make_move(PLAYER, figure_type, from_bit, to_bit)
+        conditions = king_attacked and no_moves and (many_enemies or nobody_save)
 
-        elif(to_bit & possible_attacks) != NULL:
-            self.__make_attack(PLAYER, figure_type, from_bit, to_bit)
+        if conditions:
+            return True
 
-        else:
-            return FAIL
+        return False
 
-        return [self.__player.copy(), self.__computer.copy()]
+    def __is_check(self, side):
+
+        king_attacked = self.__is_king_under_attack(side)
+        checkmate = self.__is_checkmate(side)
+
+        if king_attacked and not checkmate:
+            return True
+
+        return False
+
+    # public methods
+    # ******************************************************************************************************************
+
+    def is_game_over(self):
+
+        checkmate1 = self.__is_checkmate(PLAYER1)
+        checkmate2 = self.__is_checkmate(PLAYER2)
+
+        return checkmate1 or checkmate2
 
     def get_board(self):
 
@@ -490,26 +588,56 @@ class Grandmaster:
 
         return board
 
-    @staticmethod
-    def convert_to_bitboard(board_pos):
-        """
-        This function converts board position,
-        which is represented by number from 0 to 63,
-        from number to bitarray
+    def player_move(self, side, figure_type, f_pos, t_pos):
 
-        :param board_pos: number from 0 to 63
-        :return: bitarray for given position
-        """
-        try:
-            if board_pos < BOTTOM_LEFT or board_pos > TOP_RIGHT:
-                raise ValueError
+        checkmate = self.__is_checkmate(side)
 
-            bit_pos = bt.bitarray('0' * (TOP_RIGHT - board_pos) + '1' + '0' * board_pos)
+        if checkmate:
+            return FAIL
 
-            return bit_pos
+        check = self.__is_check(side)
 
-        except ValueError:
-            print('ERROR: ' + str(board_pos) + ' is invalid position')
-            print('INCORRECT:' + str(BOTTOM_LEFT) + ' <= ' + str(board_pos) + ' <= ' + str(TOP_RIGHT))
+        if check:
+            king_bitboard = self.__choose_bitboard(side, KING)
+            king_pos = self.__most_significant_pos(king_bitboard)
+            enemy_bitboard = self.__king_enemy(side)
+            enemy_pos = self.__most_significant_pos(enemy_bitboard)
+            king_rose = self.__count_rose(QUEEN, king_pos)
+            enemy_rose = self.__count_rose(QUEEN, enemy_pos)
 
-            return NULL.copy()
+            required = king_rose & enemy_rose & enemy_bitboard
+
+            from_bit = self.__convert_to_bitboard(f_pos)
+            to_bit = self.__convert_to_bitboard(t_pos)
+
+            possible_pushes = self.__count_possible_pushes(side, figure_type, from_bit, f_pos)
+            possible_attacks = self.__count_possible_attacks(side, figure_type, from_bit, f_pos)
+
+            if (to_bit & possible_pushes & required) == NULL:
+                return FAIL
+
+            elif (to_bit & possible_attacks & required) == NULL:
+                return FAIL
+
+            return SUCCESS
+
+        from_bit = self.__convert_to_bitboard(f_pos)
+        to_bit = self.__convert_to_bitboard(t_pos)
+        figures = self.__choose_bitboard(side, figure_type)
+
+        if (from_bit & figures) == NULL:
+            return FAIL
+
+        possible_pushes = self.__count_possible_pushes(side, figure_type, from_bit, f_pos)
+        possible_attacks = self.__count_possible_attacks(side, figure_type, from_bit, f_pos)
+
+        if (to_bit & possible_pushes) != NULL:
+            self.__make_move(side, figure_type, from_bit, to_bit)
+
+        elif(to_bit & possible_attacks) != NULL:
+            self.__make_attack(side, figure_type, from_bit, to_bit)
+
+        else:
+            return FAIL
+
+        return SUCCESS

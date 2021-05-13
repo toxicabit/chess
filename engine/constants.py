@@ -73,8 +73,8 @@ SECTORS = [bitarray('00000001' * 8),  # A
 ::--------------------------------------------------------------------::
 """
 
-PLAYER = 1
-COMPUTER = 0
+PLAYER1 = 1   # always IRL person
+PLAYER2 = -1  # may be IRL person of computer
 
 
 """
@@ -97,7 +97,7 @@ BOTTOM_LEFT = 0
 BISHOP = 'bishop'
 KING = 'king'
 KNIGHT = 'knight'
-PAWN = 'pawns'
+PAWN = 'pawn'
 QUEEN = 'queen'
 ROOK = 'rook'
 
@@ -110,3 +110,17 @@ ROOK = 'rook'
 
 FAIL = False
 SUCCESS = True
+
+
+"""
+::--------------------------------------------------------------------::
+::------------------------------|COSTS|-------------------------------::
+::--------------------------------------------------------------------::
+"""
+
+PAWN_COST = 1
+KNIGHT_COST = 3
+BISHOP_COST = 3
+ROOK_COST = 5
+QUEEN_COST = 9
+KING_COST = 1000
