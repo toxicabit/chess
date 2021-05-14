@@ -34,7 +34,7 @@ class Grandmaster:
                           'bishop': bt.bitarray('0' * 2 + '1' + '0' * 2 + '1' + '0' * 58),
                           'queen': bt.bitarray('0' * 4 + '1' + '0' * 59),
                           'king': bt.bitarray('0' * 3 + '1' + '0' * 60)}
-        self.__previous = 0
+        self.__previous = PLAYER2
 
     # choice
     # ******************************************************************************************************************

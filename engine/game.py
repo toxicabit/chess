@@ -96,12 +96,8 @@ class Game(pg.sprite.Sprite):
                         flag = False
                         running = not self.gm.is_game_over()
                     else:
-                        print("Первый клик")
                         coord1 = self.get_coord(pg.mouse.get_pos())
                         fig_pos = self.get_pos(coord1)
-                        print(coord1)
-                        print(fig_pos)
-                        print(self.board[self.pix_to_board(coord1)].color)
                         if not self.gm.is_empty(1 if self.board[self.pix_to_board(coord1)].color == self.player else -1,
                                                 fig_pos):
                             flag = True
@@ -111,34 +107,26 @@ class Game(pg.sprite.Sprite):
             self.display.blit(self.board_image, self.board_rect)
             self.all_sprites.draw(self.display)
             pg.display.flip()
-
+        self.display.blit(pg.image.load(os.path.join(self.img_folder, 'flower.jpg')), self.board_rect)
         pg.quit()
 
     def update(self, coord1):
-        # super(Game, self).update()
-        print("777")
-        print(coord1)
-        cell1 = self.pix_to_coord(coord1)[0]
-        cell2 = self.pix_to_coord(coord1)[1]
+        cell1 = self.pix_to_board(coord1)[0]
+        cell2 = self.pix_to_board(coord1)[1]
         if self.board[cell1][cell2].rect.collidepoint(coord1):
-            print(self.board[cell1][cell2].name)
-            print(cell1, cell2)
-            print("Второй клик")
+            print(self.board[cell1][cell2].color, self.board[cell1][cell2].name)
+            print((cell1, cell2))
             coord2 = self.get_coord(pg.mouse.get_pos())
-            print(coord2, self.get_pos(coord2))
+            print(self.pix_to_board(coord2))
             if self.gm.player_move(1 if self.board[cell1][cell2].color == self.player else -1,
                                    self.board[cell1][cell2].name, self.get_pos(coord1), self.get_pos(coord2)):
-                print(self.get_coord(coord2))
                 if self.board[self.pix_to_board(coord2)].rect.collidepoint(coord2):
                     for i in self.all_sprites:
                         if i.rect.center == self.get_coord(coord2):
                             i.kill()
                 self.board[cell1][cell2].rect.center = self.get_coord(coord2)
-                self.board[cell1][cell2], self.board[self.pix_to_coord(coord2)[0]][self.pix_to_coord(coord2)[1]] = \
-                    self.board[self.pix_to_coord(coord2)[0]][self.pix_to_coord(coord2)[1]], self.board[cell1][cell2]
-                for i in range(8):
-                    for j in range(8):
-                        print(self.board[i][j].name)
+                self.board[cell1][cell2], self.board[self.pix_to_board(coord2)[0]][self.pix_to_board(coord2)[1]] = \
+                    self.board[self.pix_to_board(coord2)[0]][self.pix_to_board(coord2)[1]], self.board[cell1][cell2]
 
         board = self.gm.get_board()
         print_bitboard(board)
@@ -155,5 +143,7 @@ class Game(pg.sprite.Sprite):
     def get_pos(self, pos):
         return (pos[0] - 50) // 100 + ((750 - pos[1]) // 100) * 8
 
+
+# side = input('Choose side: b or w\n')
 
 game = Game('w')
