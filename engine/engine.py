@@ -579,7 +579,7 @@ class Grandmaster:
     def is_empty(self, side, fig_pos):
 
         fig_bit = self.__convert_to_bitboard(fig_pos)
-        figures = self.__count_player2_occupied_area()
+        figures = self.__count_player1_occupied_area()
 
         if side == PLAYER2:
             figures = self.__count_player2_occupied_area()
